@@ -25,9 +25,9 @@ class BIDSDataGrabber(_BIDSDataGrabber):
 
         self._results["out_dict"] = bids_dict
         self._results.update(bids_dict)
-        if not bids_dict["t2w"]:
+        if not bids_dict["t1w"]:
             raise FileNotFoundError(
-                "No T2w images found for subject sub-{}".format(self.inputs.subject_id)
+                "No T1w images found for subject sub-{}".format(self.inputs.subject_id)
             )
         if self._require_funcs and not bids_dict["bold"]:
             raise FileNotFoundError(
@@ -35,7 +35,7 @@ class BIDSDataGrabber(_BIDSDataGrabber):
                     self.inputs.subject_id
                 )
             )
-        for imtype in ["bold", "t1w", "flair", "fmap", "sbref", "roi"]:
+        for imtype in ["bold", "t2w", "flair", "fmap", "sbref", "roi"]:
             if not bids_dict[imtype]:
                 LOGGER.info(
                     'No "%s" images found for sub-%s', imtype, self.inputs.subject_id
@@ -51,7 +51,7 @@ class _TemplateFlowSelectInputSpec(TFSelectInputSpec):
 
 class _TemplateFlowSelectOutputSpec(TFSelectOutputSpec):
     brain_mask = File(desc="Template's brain mask")
-    t2w_file = File(desc="Template's T2w image")
+    t1w_file = File(desc="Template's T1w image")
 
 
 class TemplateFlowSelect(_TFSelect):
@@ -81,16 +81,16 @@ class TemplateFlowSelect(_TFSelect):
         self._results["brain_mask"] = tf.api.get(
             name[0], raise_empty=True, desc="brain", hemi=None, suffix="mask", **specs
         )
-        self._results["t2w_file"] = tf.api.get(
-            name[0], raise_empty=True, suffix="T2w", **specs,
+        self._results["t1w_file"] = tf.api.get(
+            name[0], raise_empty=True, suffix="T1w", **specs,
         )
         return runtime
 
 
 class _RobustMNINormalizationInputSpec(_NormInputSpec):
     reference = traits.Enum(
-        "T2w",
         "T1w",
+        "T2w",
         "boldref",
         "PDw",
         mandatory=True,
