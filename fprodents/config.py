@@ -500,7 +500,7 @@ class workflow(_Config):
     """Threshold for :abbr:`FD (frame-wise displacement)`."""
     skull_strip_fixed_seed = False
     """Fix a seed for skull-stripping."""
-    skull_strip_template = "Fischer344"
+    skull_strip_template = "MouseIn"
     """Change default brain extraction template."""
     skull_strip_t1w = "force"
     """Skip brain extraction of the T1w image (default is ``force``, meaning that

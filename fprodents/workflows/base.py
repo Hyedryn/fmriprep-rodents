@@ -256,22 +256,22 @@ were met (for participant <{subject_id}>, spaces <{', '.join(std_spaces)}>."""
             config.workflow.skull_strip_template
         )[0],
         spaces=spaces,
-        t2w=subject_data["t2w"],
+        t1w=subject_data["t1w"],
     )
 
     # fmt:off
     workflow.connect([
-        (bidssrc, bids_info, [(('t2w', fix_multi_source_name), 'in_file')]),
+        (bidssrc, bids_info, [(('t1w', fix_multi_source_name), 'in_file')]),
         (inputnode, summary, [('subjects_dir', 'subjects_dir')]),
         (bidssrc, summary, [('t1w', 't1w'),
                             ('t2w', 't2w'),
                             ('bold', 'bold')]),
         (bids_info, summary, [('subject', 'subject_id')]),
-        (bidssrc, anat_preproc_wf, [('t2w', 'inputnode.t2w'),
+        (bidssrc, anat_preproc_wf, [('t1w', 'inputnode.t1w'),
                                     ('roi', 'inputnode.roi')]),
-        (bidssrc, ds_report_summary, [(('t2w', fix_multi_source_name), 'source_file')]),
+        (bidssrc, ds_report_summary, [(('t1w', fix_multi_source_name), 'source_file')]),
         (summary, ds_report_summary, [('out_report', 'in_file')]),
-        (bidssrc, ds_report_about, [(('t2w', fix_multi_source_name), 'source_file')]),
+        (bidssrc, ds_report_about, [(('t1w', fix_multi_source_name), 'source_file')]),
         (about, ds_report_about, [('out_report', 'in_file')]),
     ])
     # fmt:on
@@ -335,10 +335,10 @@ tasks and sessions), the following preprocessing was performed.
         # fmt:off
         workflow.connect([
             (anat_preproc_wf, func_preproc_wf,
-             [('outputnode.t2w_preproc', 'inputnode.anat_preproc'),
-              ('outputnode.t2w_mask', 'inputnode.anat_mask'),
-              ('outputnode.t2w_dseg', 'inputnode.anat_dseg'),
-              ('outputnode.t2w_tpms', 'inputnode.anat_tpms'),
+             [('outputnode.t1w_preproc', 'inputnode.anat_preproc'),
+              ('outputnode.t1w_mask', 'inputnode.anat_mask'),
+              ('outputnode.t1w_dseg', 'inputnode.anat_dseg'),
+              ('outputnode.t1w_tpms', 'inputnode.anat_tpms'),
               ('outputnode.template', 'inputnode.template'),
               ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
               ('outputnode.std2anat_xfm', 'inputnode.std2anat_xfm')]),
