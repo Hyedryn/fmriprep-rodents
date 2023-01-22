@@ -300,13 +300,19 @@ tasks and sessions), the following preprocessing was performed.
     )
 
     for bold_file in subject_data["bold"]:
-        echoes = extract_entities(bold_file).get("echo", [])
+        entities = extract_entities(bold_file)
+        echoes = entities.get("echo", [])
+        if "session" in entities:
+            session = "_" + entities.get("session")
+        if "run" in entities:
+            run = "_" + entities.get("run")
         echo_idxs = listify(echoes)
         multiecho = len(echo_idxs) > 2
 
         bold_ref_wf = init_epi_reference_wf(
             auto_bold_nss=True,
             omp_nthreads=config.nipype.omp_nthreads,
+            name="epi_reference_wf" + session if "session" in entities else "" + run if "run" in entities else "",
         )
         bold_ref_wf.inputs.inputnode.in_files = (
             bold_file if not multiecho else bold_file[0]
