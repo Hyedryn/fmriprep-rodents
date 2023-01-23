@@ -325,7 +325,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         brain_extraction_wf = init_rodent_brain_extraction_wf(
             template_id=skull_strip_template.space,
             omp_nthreads=omp_nthreads,
-            debug=debug
+            debug=debug,
+            mri_scheme="T1w",
+            template_id="MouseIn"
         )
 
     # 3. Spatial normalization
