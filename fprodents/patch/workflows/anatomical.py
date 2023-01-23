@@ -326,8 +326,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             template_id=skull_strip_template.space,
             omp_nthreads=omp_nthreads,
             debug=debug,
-            mri_scheme="T1w",
-            template_id="MouseIn"
+            mri_scheme="T1w"
         )
 
     # 3. Spatial normalization
