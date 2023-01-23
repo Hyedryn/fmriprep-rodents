@@ -24,7 +24,7 @@ from smriprep.interfaces.freesurfer import ReconAll
 SUBJECT_TEMPLATE = """\
 \t<ul class="elem-desc">
 \t\t<li>Subject ID: {subject_id}</li>
-\t\t<li>Structural images: {n_t1s:d} T1-weighted {t2w}</li>
+\t\t<li>Structural images: {n_t1s:d} T1-weighted {t1w}</li>
 \t\t<li>Functional series: {n_bold:d}</li>
 {tasks}
 \t\t<li>Standard output spaces: {std_spaces}</li>
@@ -82,7 +82,6 @@ class SummaryInterface(SimpleInterface):
 
 class SubjectSummaryInputSpec(BaseInterfaceInputSpec):
     t1w = InputMultiObject(File(exists=True), desc="T1w structural images")
-    t2w = InputMultiObject(File(exists=True), desc="T2w structural images")
     subjects_dir = Directory(desc="FreeSurfer subjects directory")
     subject_id = Str(desc="Subject ID")
     bold = InputMultiObject(
@@ -133,9 +132,9 @@ class SubjectSummary(SummaryInterface):
             else:
                 freesurfer_status = "Run by fMRIPrep"
 
-        t2w_seg = ""
-        if self.inputs.t2w:
-            t2w_seg = "(+ {:d} T2-weighted)".format(len(self.inputs.t2w))
+        t1w_seg = ""
+        if self.inputs.t1w:
+            t1w_seg = "(+ {:d} T1-weighted)".format(len(self.inputs.t1w))
 
         # Add list of tasks with number of runs
         bold_series = self.inputs.bold if isdefined(self.inputs.bold) else []
@@ -161,7 +160,7 @@ class SubjectSummary(SummaryInterface):
         return SUBJECT_TEMPLATE.format(
             subject_id=self.inputs.subject_id,
             n_t1s=len(self.inputs.t1w),
-            t2w=t2w_seg,
+            t1w=t1w_seg,
             n_bold=len(bold_series),
             tasks=tasks,
             std_spaces=", ".join(self.inputs.std_spaces),

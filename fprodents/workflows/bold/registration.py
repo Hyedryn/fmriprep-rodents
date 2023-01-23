@@ -87,7 +87,7 @@ def init_bold_reg_wf(
 
     workflow = Workflow(name=name)
     workflow.__desc__ = """\
-The BOLD reference was then co-registered to the T2w reference using
+The BOLD reference was then co-registered to the T1w reference using
 `flirt` [FSL {fsl_ver}, @flirt].
 Co-registration was configured with six degrees of freedom.
 """.format(
