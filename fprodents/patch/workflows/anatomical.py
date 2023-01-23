@@ -57,7 +57,7 @@ def init_anat_preproc_wf(
                 output_dir='.',
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
-                spaces=SpatialReferences(spaces=['Fischer344']),
+                spaces=SpatialReferences(spaces=['MouseIn']),
             )
     Parameters
     ----------
@@ -404,9 +404,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # fmt:on
 
     # 4. Brain tissue segmentation - FAST produces: 0 (bg), 1 (wm), 2 (csf), 3 (gm)
-    gm_tpm = get("Fischer344", label="GM", suffix="probseg")
-    wm_tpm = get("Fischer344", label="WM", suffix="probseg")
-    csf_tpm = get("Fischer344", label="CSF", suffix="probseg")
+    gm_tpm = get("MouseIn", label="GM", suffix="probseg")
+    wm_tpm = get("MouseIn", label="WM", suffix="probseg")
+    csf_tpm = get("MouseIn", label="CSF", suffix="probseg")
 
     xfm_gm = pe.Node(
         ApplyTransforms(input_image=_pop(gm_tpm), interpolation="MultiLabel"),

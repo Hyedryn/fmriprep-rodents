@@ -22,14 +22,14 @@ def test_config_spaces():
     config.init_spaces()
 
     spaces = config.workflow.spaces
-    assert "Fischer344:res-native" not in [
+    assert "MouseIn:res-native" not in [
         str(s) for s in spaces.get_standard(full_spec=True)
     ]
 
     config.init_spaces()
     spaces = config.workflow.spaces
 
-    assert "Fischer344:res-native" in [
+    assert "MouseIn:res-native" in [
         str(s) for s in spaces.get_standard(full_spec=True)
     ]
 
@@ -44,4 +44,4 @@ def test_config_spaces():
         format_reference((s.fullname, s.spec))
         for s in spaces.references
         if s.standard and s.dim == 3
-    ] == ["Fischer344"]
+    ] == ["MouseIn"]

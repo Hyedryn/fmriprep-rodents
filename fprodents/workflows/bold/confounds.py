@@ -627,7 +627,7 @@ def init_carpetplot_wf(mem_gb, metadata, name="bold_carpet_wf"):
             dimension=3,
             input_image=str(
                 get_template(
-                    "Fischer344",
+                    "MouseIn",
                     suffix="dseg",
                     atlas=None,
                     extension=[".nii", ".nii.gz"],
