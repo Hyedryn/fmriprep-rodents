@@ -112,7 +112,7 @@ def init_rodent_brain_extraction_wf(
     norm = pe.Node(
         Registration(
             from_file=pkgr_fn(
-                "fprodents", f"data/artsBrainExtraction_{ants_params}_{mri_scheme}.json"
+                "fprodents", f"data/brainExtraction_{ants_params}_{mri_scheme}.json"
             )
         ),
         name="norm",
