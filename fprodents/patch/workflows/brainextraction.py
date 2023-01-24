@@ -80,16 +80,16 @@ def init_rodent_brain_extraction_wf(
         template_specs["resolution"] = 2
 
     # Find a suitable target template in TemplateFlow
-    tpl_target_path = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_T1w.nii.gz")
+    tpl_target_path = [Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_T1w.nii.gz")]
     if not tpl_target_path:
         raise RuntimeError(
             f"An instance of template <tpl-{template_id}> with MR scheme '{mri_scheme}'"
             " could not be found."
         )
 
-    tpl_brainmask_path = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_desc-brain_mask.nii.gz")
+    tpl_brainmask_path = [Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_desc-brain_mask.nii.gz")]
 
-    tpl_regmask_path = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_desc-BrainCerebellumExtraction_mask.nii.gz")
+    tpl_regmask_path = [Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_desc-BrainCerebellumExtraction_mask.nii.gz")]
 
     denoise = pe.Node(DenoiseImage(dimension=3, copy_header=True),
                       name="denoise", n_procs=omp_nthreads)
