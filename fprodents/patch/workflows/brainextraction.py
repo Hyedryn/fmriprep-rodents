@@ -28,6 +28,7 @@ from niworkflows.interfaces.reportlets.registration import (
 from templateflow.api import get as get_template
 from ..interfaces import DenoiseImage
 
+from pathlib import Path
 
 class DerivativesDataSink(_DDS):
     """Generate a BIDS-Derivatives-compatible output folder."""
@@ -79,16 +80,16 @@ def init_rodent_brain_extraction_wf(
         template_specs["resolution"] = 2
 
     # Find a suitable target template in TemplateFlow
-    tpl_target_path = "/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_T1w.nii.gz"
+    tpl_target_path = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_T1w.nii.gz")
     if not tpl_target_path:
         raise RuntimeError(
             f"An instance of template <tpl-{template_id}> with MR scheme '{mri_scheme}'"
             " could not be found."
         )
 
-    tpl_brainmask_path = "/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_desc-brain_mask.nii.gz"
+    tpl_brainmask_path = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_desc-brain_mask.nii.gz")
 
-    tpl_regmask_path = "/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_desc-BrainCerebellumExtraction_mask.nii.gz"
+    tpl_regmask_path = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_desc-BrainCerebellumExtraction_mask.nii.gz")
 
     denoise = pe.Node(DenoiseImage(dimension=3, copy_header=True),
                       name="denoise", n_procs=omp_nthreads)
@@ -129,7 +130,7 @@ def init_rodent_brain_extraction_wf(
 
     # truncate template intensity to match target
     clip_tmpl = pe.Node(IntensityClip(p_min=5, p_max=98), name="clip_tmpl")
-    clip_tmpl.inputs.in_file = tpl_target_path
+    clip_tmpl.inputs.in_file = _pop(tpl_target_path)
 
     # set INU bspline grid based on voxel size
     bspline_grid = pe.Node(niu.Function(function=_bspline_grid), name="bspline_grid")
@@ -193,7 +194,7 @@ def init_rodent_brain_extraction_wf(
     if tpl_regmask_path:
         hires_mask = pe.Node(
             ApplyTransforms(
-                input_image=tpl_regmask_path,
+                input_image=_pop(tpl_regmask_path),
                 transforms="identity",
                 interpolation="Gaussian",
                 float=True,
