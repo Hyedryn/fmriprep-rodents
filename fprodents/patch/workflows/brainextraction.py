@@ -129,7 +129,7 @@ def init_rodent_brain_extraction_wf(
 
     # truncate template intensity to match target
     clip_tmpl = pe.Node(IntensityClip(p_min=5, p_max=98), name="clip_tmpl")
-    clip_tmpl.inputs.in_file = _pop(tpl_target_path)
+    clip_tmpl.inputs.in_file = tpl_target_path
 
     # set INU bspline grid based on voxel size
     bspline_grid = pe.Node(niu.Function(function=_bspline_grid), name="bspline_grid")
@@ -193,7 +193,7 @@ def init_rodent_brain_extraction_wf(
     if tpl_regmask_path:
         hires_mask = pe.Node(
             ApplyTransforms(
-                input_image=_pop(tpl_regmask_path),
+                input_image=tpl_regmask_path,
                 transforms="identity",
                 interpolation="Gaussian",
                 float=True,
