@@ -4,7 +4,6 @@ from nipype import logging
 from nipype.pipeline import engine as pe
 from nipype.interfaces import fsl, utility as niu
 from nipype.interfaces.ants.base import Info as ANTsInfo
-from nirodents.workflows.brainextraction import init_rodent_brain_extraction_wf
 from niworkflows.interfaces.header import ValidateImage
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
@@ -16,6 +15,7 @@ from templateflow.api import get_metadata, get
 from ...interfaces.patches import FixBiasItersFAST as FAST
 from ..interfaces import TemplateFlowSelect
 from ..utils import fix_multi_source_name
+from .brainextraction import init_rodent_brain_extraction_wf
 
 LOGGER = logging.getLogger("nipype.workflow")
 
