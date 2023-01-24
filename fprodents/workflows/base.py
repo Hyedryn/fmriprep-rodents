@@ -243,48 +243,56 @@ were met (for participant <{subject_id}>, spaces <{', '.join(std_spaces)}>."""
             )
 
     print(subject_data["t1w"])
-    # Preprocessing of T1w (includes registration to MNI)
-    anat_preproc_wf = init_anat_preproc_wf(
-        bids_root=str(config.execution.bids_dir),
-        debug=config.execution.debug is True,
-        existing_derivatives=anat_derivatives,
-        longitudinal=config.workflow.longitudinal,
-        omp_nthreads=config.nipype.omp_nthreads,
-        output_dir=output_dir,
-        skull_strip_fixed_seed=config.workflow.skull_strip_fixed_seed,
-        skull_strip_mode=config.workflow.skull_strip_t1w,
-        skull_strip_template=Reference.from_string(
-            config.workflow.skull_strip_template
-        )[0],
-        spaces=spaces,
-        t1w=subject_data["t1w"],
-        ses=extract_entities(subject_data["t1w"]).get("session")
-    )
+    anat_dic = {}
+    for anat_file in subject_data["t1w"]:
+        entities = extract_entities(anat_file)
+        if "session" in entities:
+            session = "_" + entities.get("session")
+        # Preprocessing of T1w (includes registration to MNI)
+        anat_preproc_wf = init_anat_preproc_wf(
+            bids_root=str(config.execution.bids_dir),
+            debug=config.execution.debug is True,
+            existing_derivatives=anat_derivatives,
+            longitudinal=config.workflow.longitudinal,
+            omp_nthreads=config.nipype.omp_nthreads,
+            output_dir=output_dir,
+            skull_strip_fixed_seed=config.workflow.skull_strip_fixed_seed,
+            skull_strip_mode=config.workflow.skull_strip_t1w,
+            skull_strip_template=Reference.from_string(
+                config.workflow.skull_strip_template
+            )[0],
+            spaces=spaces,
+            t1w=anat_file,
+            ses=extract_entities(anat_file).get("session"),
+            name="anat_preproc_wf" + session if "session" in entities else ""
+        )
 
-    # fmt:off
-    workflow.connect([
-        (bidssrc, bids_info, [(('t1w', fix_multi_source_name), 'in_file')]),
-        (inputnode, summary, [('subjects_dir', 'subjects_dir')]),
-        (bidssrc, summary, [('t1w', 't1w'),
-                            ('t2w', 't2w'),
-                            ('bold', 'bold')]),
-        (bids_info, summary, [('subject', 'subject_id')]),
-        (bidssrc, anat_preproc_wf, [('t1w', 'inputnode.t1w'),
-                                    ('roi', 'inputnode.roi')]),
-        (bidssrc, ds_report_summary, [(('t1w', fix_multi_source_name), 'source_file')]),
-        (summary, ds_report_summary, [('out_report', 'in_file')]),
-        (bidssrc, ds_report_about, [(('t1w', fix_multi_source_name), 'source_file')]),
-        (about, ds_report_about, [('out_report', 'in_file')]),
-    ])
-    # fmt:on
+        anat_preproc_wf.inputs.inputnode.t1w = (
+            anat_file
+        )
+        # fmt:off
+        workflow.connect([
+            (bidssrc, bids_info, [(('t1w', fix_multi_source_name), 'in_file')]),
+            (inputnode, summary, [('subjects_dir', 'subjects_dir')]),
+            (bidssrc, summary, [('t1w', 't1w'),
+                                ('t2w', 't2w'),
+                                ('bold', 'bold')]),
+            (bids_info, summary, [('subject', 'subject_id')]),
+            (bidssrc, anat_preproc_wf, [('roi', 'inputnode.roi')]),
+            (bidssrc, ds_report_summary, [(('t1w', fix_multi_source_name), 'source_file')]),
+            (summary, ds_report_summary, [('out_report', 'in_file')]),
+            (bidssrc, ds_report_about, [(('t1w', fix_multi_source_name), 'source_file')]),
+            (about, ds_report_about, [('out_report', 'in_file')]),
+        ])
+        # fmt:on
+        anat_dic[session] = anat_preproc_wf
+        # Overwrite ``out_path_base`` of smriprep's DataSinks
+        for node in workflow.list_node_names():
+            if node.split(".")[-1].startswith("ds_"):
+                workflow.get_node(node).interface.out_path_base = "fmriprep"
 
-    # Overwrite ``out_path_base`` of smriprep's DataSinks
-    for node in workflow.list_node_names():
-        if node.split(".")[-1].startswith("ds_"):
-            workflow.get_node(node).interface.out_path_base = "fmriprep"
-
-    if anat_only:
-        return workflow
+        if anat_only:
+            return workflow
 
     # Append the functional section to the existing anatomical exerpt
     # That way we do not need to stream down the number of bold datasets
@@ -336,7 +344,7 @@ tasks and sessions), the following preprocessing was performed.
 
         # fmt:off
         workflow.connect([
-            (anat_preproc_wf, func_preproc_wf,
+            (anat_dic[session], func_preproc_wf,
              [('outputnode.t1w_preproc', 'inputnode.anat_preproc'),
               ('outputnode.t1w_mask', 'inputnode.anat_mask'),
               ('outputnode.t1w_dseg', 'inputnode.anat_dseg'),
