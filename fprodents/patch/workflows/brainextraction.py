@@ -55,6 +55,7 @@ def init_rodent_brain_extraction_wf(
     template_id="MouseIn",
     template_specs=None,
     use_float=True,
+    ses="OLD",
 ):
     """
     Build an atlas-based brain extraction pipeline for rodent T1w and T2w MRI data.
@@ -78,36 +79,16 @@ def init_rodent_brain_extraction_wf(
         template_specs["resolution"] = 2
 
     # Find a suitable target template in TemplateFlow
-    tpl_target_path = get_template(template_id, suffix=mri_scheme, **template_specs,)
+    tpl_target_path = "/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_T1w.nii.gz"
     if not tpl_target_path:
         raise RuntimeError(
             f"An instance of template <tpl-{template_id}> with MR scheme '{mri_scheme}'"
             " could not be found."
         )
 
-    tpl_brainmask_path = get_template(
-        template_id,
-        atlas=None,
-        hemi=None,
-        desc="brain",
-        suffix="probseg",
-        **template_specs,
-    ) or get_template(
-        template_id,
-        atlas=None,
-        hemi=None,
-        desc="brain",
-        suffix="mask",
-        **template_specs,
-    )
+    tpl_brainmask_path = "/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_desc-brain_mask.nii.gz"
 
-    tpl_regmask_path = get_template(
-        template_id,
-        atlas=None,
-        desc="BrainCerebellumExtraction",
-        suffix="mask",
-        **template_specs,
-    )
+    tpl_regmask_path = "/globalscratch/users/q/d/qdessain/SYRINA/Template/tpl-DBM-ses-"+ses+"_desc-BrainCerebellumExtraction_mask.nii.gz"
 
     denoise = pe.Node(DenoiseImage(dimension=3, copy_header=True),
                       name="denoise", n_procs=omp_nthreads)

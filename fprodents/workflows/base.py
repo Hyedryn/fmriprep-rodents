@@ -242,6 +242,7 @@ Attempted to access pre-existing anatomical derivatives at \
 were met (for participant <{subject_id}>, spaces <{', '.join(std_spaces)}>."""
             )
 
+    print(subject_data["t1w"])
     # Preprocessing of T1w (includes registration to MNI)
     anat_preproc_wf = init_anat_preproc_wf(
         bids_root=str(config.execution.bids_dir),
@@ -257,6 +258,7 @@ were met (for participant <{subject_id}>, spaces <{', '.join(std_spaces)}>."""
         )[0],
         spaces=spaces,
         t1w=subject_data["t1w"],
+        ses=extract_entities(subject_data["t1w"]).get("session")
     )
 
     # fmt:off
