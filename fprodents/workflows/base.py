@@ -347,8 +347,6 @@ tasks and sessions), the following preprocessing was performed.
             (anat_dic[session], func_preproc_wf,
              [('outputnode.t1w_preproc', 'inputnode.anat_preproc'),
               ('outputnode.t1w_mask', 'inputnode.anat_mask'),
-              ('outputnode.t1w_dseg', 'inputnode.anat_dseg'),
-              ('outputnode.t1w_tpms', 'inputnode.anat_tpms'),
               ('outputnode.template', 'inputnode.template'),
               ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
               ('outputnode.std2anat_xfm', 'inputnode.std2anat_xfm')]),

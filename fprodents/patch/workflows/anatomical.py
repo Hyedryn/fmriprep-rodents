@@ -112,19 +112,10 @@ def init_anat_preproc_wf(
         Skull-stripped ``t1w_preproc``
     t1w_mask
         Brain (binary) mask estimated by brain extraction.
-    anat_dseg
-        Brain tissue segmentation of the preprocessed structural image, including
-        gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).
-    anat_tpms
-        List of tissue probability maps corresponding to ``anat_dseg``.
     std_preproc
         T1w reference resampled in one or more standard spaces.
     std_mask
         Mask of skull-stripped template, in MNI space
-    std_dseg
-        Segmentation, resampled into MNI space
-    std_tpms
-        List of tissue probability maps in MNI space
     subjects_dir
         FreeSurfer SUBJECTS_DIR
     anat2std_xfm
@@ -152,12 +143,8 @@ BIDS dataset."""
             fields=[
                 "t1w_preproc",
                 "t1w_mask",
-                "t1w_dseg",
-                "t1w_tpms",
                 "std_preproc",
                 "std_mask",
-                "std_dseg",
-                "std_tpms",
                 "anat2std_xfm",
                 "std2anat_xfm",
                 "template",
@@ -176,7 +163,6 @@ BIDS dataset."""
                 [
                     ("t1w_preproc", "inputnode.t1w_preproc"),
                     ("t1w_mask", "inputnode.t1w_mask"),
-                    ("t1w_dseg", "inputnode.anat_dseg"),
                 ],
             ),
         ]
@@ -407,57 +393,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # fmt:on
 
     # 4. Brain tissue segmentation - FAST produces: 0 (bg), 1 (wm), 2 (csf), 3 (gm)
-    gm_tpm = get("MouseIn", label="GM", suffix="probseg")
-    wm_tpm = get("MouseIn", label="WM", suffix="probseg")
-    csf_tpm = get("MouseIn", label="CSF", suffix="probseg")
 
-    xfm_gm = pe.Node(
-        ApplyTransforms(input_image=_pop(gm_tpm), interpolation="MultiLabel"),
-        name="xfm_gm",
-    )
-    xfm_wm = pe.Node(
-        ApplyTransforms(input_image=_pop(wm_tpm), interpolation="MultiLabel"),
-        name="xfm_wm",
-    )
-    xfm_csf = pe.Node(
-        ApplyTransforms(input_image=_pop(csf_tpm), interpolation="MultiLabel"),
-        name="xfm_csf",
-    )
-
-    mrg_tpms = pe.Node(niu.Merge(3), name="mrg_tpms")
-
-    anat_dseg = pe.Node(
-        FAST(
-            segments=True,
-            probability_maps=True,
-            bias_iters=0,
-            no_bias=True,
-        ),
-        name="anat_dseg",
-        mem_gb=3,
-    )
-
-    # Change LookUp Table - BIDS wants: 0 (bg), 1 (gm), 2 (wm), 3 (csf)
-    lut_anat_dseg = pe.Node(
-        niu.Function(function=_apply_bids_lut), name="lut_anat_dseg"
-    )
-    lut_anat_dseg.inputs.lut = (0, 3, 2, 1)  # Maps: 0 -> 0, 3 -> 1, 2 -> 2, 1 -> 3
-
-    fast2bids = pe.Node(
-        niu.Function(function=_probseg_fast2bids),
-        name="fast2bids",
-        run_without_submitting=True,
-    )
-
-    # 5. Move native dseg & tpms back to standard space
-    xfm_dseg = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="xfm_dseg")
-    xfm_tpms = pe.MapNode(
-        ApplyTransforms(
-            dimension=3, default_value=0, float=True, interpolation="Gaussian"
-        ),
-        iterfield=["input_image"],
-        name="xfm_tpms",
-    )
 
     # fmt:off
     workflow.connect([
@@ -465,44 +401,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (brain_extraction_wf, buffernode, [
             (('outputnode.out_brain', _pop), 't1w_brain'),
             ('outputnode.out_mask', 't1w_mask')]),
-        (buffernode, anat_dseg, [('t1w_brain', 'in_files')]),
-        (brain_extraction_wf, xfm_gm, [(
-            ('outputnode.out_corrected', _pop), 'reference_image')]),
-        (brain_extraction_wf, xfm_wm, [(
-            ('outputnode.out_corrected', _pop), 'reference_image')]),
-        (brain_extraction_wf, xfm_csf, [(
-            ('outputnode.out_corrected', _pop), 'reference_image')]),
-        (anat_norm_wf, xfm_gm, [(
-            'outputnode.std2anat_xfm', 'transforms')]),
-        (anat_norm_wf, xfm_wm, [(
-            'outputnode.std2anat_xfm', 'transforms')]),
-        (anat_norm_wf, xfm_csf, [(
-            'outputnode.std2anat_xfm', 'transforms')]),
-        (xfm_gm, mrg_tpms, [('output_image', 'in1')]),
-        (xfm_wm, mrg_tpms, [('output_image', 'in2')]),
-        (xfm_csf, mrg_tpms, [('output_image', 'in3')]),
-        (mrg_tpms, anat_dseg, [('out', 'other_priors')]),
-        (anat_dseg, lut_anat_dseg, [('partial_volume_map', 'in_dseg')]),
-        (lut_anat_dseg, outputnode, [('out', 't1w_dseg')]),
-        (anat_dseg, fast2bids, [('partial_volume_files', 'inlist')]),
-        (fast2bids, outputnode, [('out', 't1w_tpms')]),
-        (outputnode, anat_derivatives_wf, [
-            ('t1w_tpms', 'inputnode.anat_tpms'),
-            ('t1w_dseg', 'inputnode.anat_dseg')
-        ]),
         # step 5
-        (anat_norm_wf, xfm_dseg, [('poutputnode.standardized', 'reference_image')]),
-        (lut_anat_dseg, xfm_dseg, [('out', 'input_image')]),
-        (anat_norm_wf, xfm_dseg, [('poutputnode.anat2std_xfm', 'transforms')]),
-        (anat_norm_wf, xfm_tpms, [('poutputnode.standardized', 'reference_image')]),
-        (fast2bids, xfm_tpms, [('out', 'input_image')]),
-        (anat_norm_wf, xfm_tpms, [('poutputnode.anat2std_xfm', 'transforms')]),
-        (xfm_dseg, outputnode, [('output_image', 'std_dseg')]),
-        (xfm_tpms, outputnode, [('output_image', 'std_tpms')]),
-        (outputnode, anat_derivatives_wf, [
-            ('std_dseg', 'inputnode.std_dseg'),
-            ('std_tpms', 'inputnode.std_tpms')
-        ]),
     ])
     # fmt:on
     return workflow
@@ -748,8 +647,6 @@ def init_anat_reports_wf(*, output_dir, name="anat_reports_wf"):
     t1w_preproc
         The T1w reference map, which is calculated as the average of bias-corrected
         and preprocessed T1w images, defining the anatomical space.
-    anat_dseg
-        Segmentation in T1w space
     t1w_mask
         Brain (binary) mask estimated by brain extraction.
     template
@@ -767,7 +664,6 @@ def init_anat_reports_wf(*, output_dir, name="anat_reports_wf"):
         "source_file",
         "t1w_conform_report",
         "t1w_preproc",
-        "anat_dseg",
         "t1w_mask",
         "template",
         "std_t1w",
@@ -798,27 +694,14 @@ def init_anat_reports_wf(*, output_dir, name="anat_reports_wf"):
         run_without_submitting=True,
     )
 
-    ds_anat_dseg_mask_report = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir,
-            suffix="dseg",
-            datatype="figures",
-            dismiss_entities=("session",),
-        ),
-        name="ds_anat_dseg_mask_report",
-        run_without_submitting=True,
-    )
 
     # fmt:off
     workflow.connect([
         (inputnode, t1w_conform_check, [('t1w_conform_report', 'in_file')]),
         (t1w_conform_check, ds_t1w_conform_report, [('out', 'in_file')]),
         (inputnode, ds_t1w_conform_report, [('source_file', 'source_file')]),
-        (inputnode, ds_anat_dseg_mask_report, [('source_file', 'source_file')]),
         (inputnode, seg_rpt, [('t1w_preproc', 'in_file'),
-                              ('t1w_mask', 'in_mask'),
-                              ('anat_dseg', 'in_rois')]),
-        (seg_rpt, ds_anat_dseg_mask_report, [('out_report', 'in_file')]),
+                              ('t1w_mask', 'in_mask')]),
     ])
     # fmt:on
 
@@ -902,10 +785,6 @@ def init_anat_derivatives_wf(
         and preprocessed T1w images, defining the anatomical space.
     t1w_mask
         Mask of the ``t1w_preproc``
-    anat_dseg
-        Segmentation in T1w space
-    anat_tpms
-        Tissue probability maps in T1w space
     anat2std_xfm
         Nonlinear spatial transform to resample imaging data given in anatomical space
         into standard space.
@@ -915,10 +794,6 @@ def init_anat_derivatives_wf(
         T1w reference resampled in one or more standard spaces.
     std_mask
         Mask of skull-stripped template, in standard space
-    std_dseg
-        Segmentation, resampled into standard space
-    std_tpms
-        Tissue probability maps in standard space
     t1w2fsnative_xfm
         LTA-style affine matrix translating from T1w to
         FreeSurfer-conformed subject space
@@ -947,10 +822,6 @@ def init_anat_derivatives_wf(
                 "t1w_ref_xfms",
                 "t1w_preproc",
                 "t1w_mask",
-                "anat_dseg",
-                "anat_tpms",
-                "std_dseg",
-                "std_tpms",
                 "anat2std_xfm",
                 "std2anat_xfm",
                 "t1w2fsnative_xfm",
@@ -980,18 +851,6 @@ def init_anat_derivatives_wf(
     )
     ds_t1w_mask.inputs.Type = "Brain"
 
-    ds_anat_dseg = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix="dseg", compress=True),
-        name="ds_anat_dseg",
-        run_without_submitting=True,
-    )
-
-    ds_anat_tpms = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix="probseg", compress=True),
-        name="ds_anat_tpms",
-        run_without_submitting=True,
-    )
-    ds_anat_tpms.inputs.label = tpm_labels
 
     # fmt:off
     workflow.connect([
@@ -1000,10 +859,6 @@ def init_anat_derivatives_wf(
                                      ('source_files', 'source_file')]),
         (inputnode, ds_t1w_mask, [('t1w_mask', 'in_file'),
                                   ('source_files', 'source_file')]),
-        (inputnode, ds_anat_tpms, [('anat_tpms', 'in_file'),
-                                   ('source_files', 'source_file')]),
-        (inputnode, ds_anat_dseg, [('anat_dseg', 'in_file'),
-                                   ('source_files', 'source_file')]),
         (raw_sources, ds_t1w_mask, [('out', 'RawSources')]),
     ])
     # fmt:on
@@ -1111,16 +966,7 @@ def init_anat_derivatives_wf(
         anat2std_mask = pe.Node(
             ApplyTransforms(interpolation="MultiLabel"), name="anat2std_mask"
         )
-        anat2std_dseg = pe.Node(
-            ApplyTransforms(interpolation="MultiLabel"), name="anat2std_dseg"
-        )
-        anat2std_tpms = pe.MapNode(
-            ApplyTransforms(
-                dimension=3, default_value=0, float=True, interpolation="Gaussian"
-            ),
-            iterfield=["input_image"],
-            name="anat2std_tpms",
-        )
+
 
         ds_std_t1w = pe.Node(
             DerivativesDataSink(
@@ -1143,32 +989,10 @@ def init_anat_derivatives_wf(
         )
         ds_std_mask.inputs.Type = "Brain"
 
-        ds_std_dseg = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, suffix="dseg", compress=True
-            ),
-            name="ds_std_dseg",
-            run_without_submitting=True,
-        )
-
-        ds_std_tpms = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, suffix="probseg", compress=True
-            ),
-            name="ds_std_tpms",
-            run_without_submitting=True,
-        )
-
-        # CRITICAL: the sequence of labels here (CSF-GM-WM) is that of the output of FSL-FAST
-        #           (intensity mean, per tissue). This order HAS to be matched also by the ``tpms``
-        #           output in the data/io_spec.json file.
-        ds_std_tpms.inputs.label = tpm_labels
         # fmt:off
         workflow.connect([
             (inputnode, anat2std_t1w, [('t1w_preproc', 'input_image')]),
             (inputnode, anat2std_mask, [('t1w_mask', 'input_image')]),
-            (inputnode, anat2std_dseg, [('anat_dseg', 'input_image')]),
-            (inputnode, anat2std_tpms, [('anat_tpms', 'input_image')]),
             (inputnode, gen_ref, [('t1w_preproc', 'moving_image')]),
             (inputnode, select_xfm, [
                 ('anat2std_xfm', 'anat2std_xfm'),
@@ -1183,8 +1007,6 @@ def init_anat_derivatives_wf(
             (select_tpl, gen_ref, [('t1w_file', 'fixed_image')]),
             (anat2std_t1w, ds_std_t1w, [('output_image', 'in_file')]),
             (anat2std_mask, ds_std_mask, [('output_image', 'in_file')]),
-            (anat2std_dseg, ds_std_dseg, [('output_image', 'in_file')]),
-            (anat2std_tpms, ds_std_tpms, [('output_image', 'in_file')]),
             (select_tpl, ds_std_mask, [(('brain_mask', _drop_path), 'RawSources')]),
         ])
 
@@ -1192,23 +1014,23 @@ def init_anat_derivatives_wf(
             # Connect apply transforms nodes
             [
                 (gen_ref, n, [('out_file', 'reference_image')])
-                for n in (anat2std_t1w, anat2std_mask, anat2std_dseg, anat2std_tpms)
+                for n in (anat2std_t1w, anat2std_mask,)
             ]
             + [
                 (select_xfm, n, [('anat2std_xfm', 'transforms')])
-                for n in (anat2std_t1w, anat2std_mask, anat2std_dseg, anat2std_tpms)
+                for n in (anat2std_t1w, anat2std_mask)
             ]
             # Connect the source_file input of these datasinks
             + [
                 (inputnode, n, [('source_files', 'source_file')])
-                for n in (ds_std_t1w, ds_std_mask, ds_std_dseg, ds_std_tpms)
+                for n in (ds_std_t1w, ds_std_mask)
             ]
             # Connect the space input of these datasinks
             + [
                 (spacesource, n, [
                     ('space', 'space'), ('cohort', 'cohort'), ('resolution', 'resolution')
                 ])
-                for n in (ds_std_t1w, ds_std_mask, ds_std_dseg, ds_std_tpms)
+                for n in (ds_std_t1w, ds_std_mask)
             ]
         )
         # fmt:on

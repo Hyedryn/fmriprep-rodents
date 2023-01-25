@@ -62,15 +62,10 @@ def init_func_preproc_wf(bold_file):
         Bias-corrected structural template image
     t1w_mask
         Mask of the skull-stripped template image
-    anat_dseg
-        Segmentation of preprocessed structural image, including
-        gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF)
     t1w_asec
         Segmentation of structural image, done with FreeSurfer.
     t1w_aparc
         Parcellation of structural image, done with FreeSurfer.
-    anat_tpms
-        List of tissue probability maps in T1w space
     template
         List of templates to target
     anat2std_xfm
@@ -226,8 +221,6 @@ Non-gridded (surface) resamplings were performed using `mri_vol2surf`
                 "subject_id",
                 "anat_preproc",
                 "anat_mask",
-                "anat_dseg",
-                "anat_tpms",
                 "anat2std_xfm",
                 "std2anat_xfm",
                 "template",
