@@ -277,7 +277,7 @@ class RobustMNINormalization(_Norm):
             ]
 
             # HACK: since Fischer has no resolutions
-            if self.inputs.template == "TMBTA":
+            if self.inputs.template == "MouseIn":
                 default_resolution = None
             # Set the template resolution.
             elif isdefined(self.inputs.template_resolution):

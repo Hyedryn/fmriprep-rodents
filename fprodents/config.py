@@ -500,7 +500,7 @@ class workflow(_Config):
     """Threshold for :abbr:`FD (frame-wise displacement)`."""
     skull_strip_fixed_seed = False
     """Fix a seed for skull-stripping."""
-    skull_strip_template = "TMBTA"
+    skull_strip_template = "MouseIn"
     """Change default brain extraction template."""
     skull_strip_t1w = "force"
     """Skip brain extraction of the T1w image (default is ``force``, meaning that
@@ -651,8 +651,8 @@ def init_spaces(checkpoint=True):
         spaces.checkpoint()
 
     # Add the default standard space if not already present (required by several sub-workflows)
-    if "TMBTA" not in spaces.get_spaces(nonstandard=False, dim=(3,)):
-        spaces.add(Reference("TMBTA", {}))
+    if "MouseIn" not in spaces.get_spaces(nonstandard=False, dim=(3,)):
+        spaces.add(Reference("MouseIn", {}))
 
     # Make the SpatialReferences object available
     workflow.spaces = spaces

@@ -53,7 +53,7 @@ def init_rodent_brain_extraction_wf(
     name="rodent_brain_extraction_wf",
     omp_nthreads=None,
     output_dir=None,
-    template_id="TMBTA",
+    template_id="MouseIn",
     template_specs=None,
     use_float=True,
     ses="OLD",

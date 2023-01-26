@@ -633,13 +633,13 @@ def _select_template(template):
         return get_template_specs(template, template_spec=specs)[0]
 
     # Map nonstandard resolutions to existing resolutions
-    if template == "Fischer344":
+    if template == "MouseIn":
         default_res = None
     else:
         default_res = 2
 
     out = get_template_specs(
-        "Fischer344", template_spec=specs, default_resolution=default_res
+        "MouseIn", template_spec=specs, default_resolution=default_res
     )
 
     return out[0]
