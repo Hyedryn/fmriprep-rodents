@@ -397,13 +397,7 @@ class FMRISummary(SimpleInterface):
             colnames[colnames.index(name)] = newname
 
         data.columns = colnames
-        import nibabel as nb
-        fig = fMRIPlot(
-            nb.load(self.inputs.in_func).get_fdata(),
-            segments=(self.inputs.in_segm if isdefined(self.inputs.in_segm) else None),
-            tr=self.inputs.tr,
-            confounds=data,
-            units=units,
-        ).plot()
-        fig.savefig(self._results["out_file"], bbox_inches="tight")
+        #import nibabel as nb
+        #fig = fMRIPlot( nb.load(self.inputs.in_func).get_fdata(), segments=(self.inputs.in_segm if isdefined(self.inputs.in_segm) else None),tr=self.inputs.tr, confounds=data,units=units,).plot()
+        #fig.savefig(self._results["out_file"], bbox_inches="tight")
         return runtime
