@@ -657,4 +657,4 @@ def init_spaces(checkpoint=True):
     print("DBEUG",spaces.get_spaces(nonstandard=False, dim=(3,)))
 
     # Make the SpatialReferences object available
-    workflow.spaces = spaces
+    workflow.spaces = ["TMBTA"]

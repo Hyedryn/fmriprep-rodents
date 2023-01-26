@@ -544,9 +544,7 @@ def parse_args(args=None, namespace=None):
 
     # Initialize --output-spaces if not defined
     if config.execution.output_spaces is None:
-        config.execution.output_spaces = SpatialReferences(
-            [Reference("MouseIn", {"res": "native"})]
-        )
+        config.execution.output_spaces = "TMBTA"#SpatialReferences([Reference("MouseIn", {"res": "native"})])
         print(config.execution.output_spaces)
 
     # Retrieve logging level
