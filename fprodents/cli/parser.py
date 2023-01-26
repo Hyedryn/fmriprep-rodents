@@ -361,7 +361,7 @@ https://fmriprep-rodents.readthedocs.io/en/%s/spaces.html"""
     g_ants = parser.add_argument_group("Specific options for ANTs registrations")
     g_ants.add_argument(
         "--skull-strip-template",
-        default="TMBTA",
+        default="MouseIn",
         type=Reference.from_string,
         help="select a template for skull-stripping with antsBrainExtraction",
     )
