@@ -281,7 +281,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         ants_ver=ANTsInfo.version() or "(version unknown)",
         fsl_ver=fsl.FAST().version or "(version unknown)",
         num_t1w=num_t1w,
-        skullstrip_tpl=skull_strip_template.fullname,
+        skullstrip_tpl=skull_strip_template,
     )
 
     buffernode = pe.Node(
@@ -326,7 +326,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     else:
         # ants_affine_init?
         brain_extraction_wf = init_rodent_brain_extraction_wf(
-            template_id=skull_strip_template.space,
+            template_id=skull_strip_template,
             omp_nthreads=omp_nthreads,
             debug=debug,
             mri_scheme="T1w",

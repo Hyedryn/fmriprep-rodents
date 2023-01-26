@@ -651,8 +651,6 @@ def init_spaces(checkpoint=True):
     # Add the default standard space if not already present (required by several sub-workflows)
     if "MouseIn" not in spaces.get_spaces(nonstandard=False, dim=(3,)):
         spaces.add("MouseIn")
-        
-    print("DBEUG",spaces.get_spaces(nonstandard=False, dim=(3,)))
 
     # Make the SpatialReferences object available
     workflow.spaces = ["TMBTA"]
