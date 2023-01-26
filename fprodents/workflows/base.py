@@ -242,6 +242,20 @@ Attempted to access pre-existing anatomical derivatives at \
 were met (for participant <{subject_id}>, spaces <{', '.join(std_spaces)}>."""
             )
 
+    # fmt:off
+    workflow.connect([
+        (bidssrc, bids_info, [(('t1w', fix_multi_source_name), 'in_file')]),
+        (inputnode, summary, [('subjects_dir', 'subjects_dir')]),
+        (bidssrc, summary, [('t1w', 't1w'),
+                            ('bold', 'bold')]),
+        (bids_info, summary, [('subject', 'subject_id')]),
+        (bidssrc, ds_report_summary, [(('t1w', fix_multi_source_name), 'source_file')]),
+        (summary, ds_report_summary, [('out_report', 'in_file')]),
+        (bidssrc, ds_report_about, [(('t1w', fix_multi_source_name), 'source_file')]),
+        (about, ds_report_about, [('out_report', 'in_file')]),
+    ])
+    # fmt:on
+
     print(subject_data["t1w"])
     anat_dic = {}
     for anat_file in subject_data["t1w"]:
@@ -270,28 +284,22 @@ were met (for participant <{subject_id}>, spaces <{', '.join(std_spaces)}>."""
         anat_preproc_wf.inputs.inputnode.t1w = (
             anat_file
         )
+
         # fmt:off
         workflow.connect([
-            (bidssrc, bids_info, [(('t1w', fix_multi_source_name), 'in_file')]),
-            (inputnode, summary, [('subjects_dir', 'subjects_dir')]),
-            (bidssrc, summary, [('t1w', 't1w'),
-                                ('bold', 'bold')]),
-            (bids_info, summary, [('subject', 'subject_id')]),
             (bidssrc, anat_preproc_wf, [('roi', 'inputnode.roi')]),
-            (bidssrc, ds_report_summary, [(('t1w', fix_multi_source_name), 'source_file')]),
-            (summary, ds_report_summary, [('out_report', 'in_file')]),
-            (bidssrc, ds_report_about, [(('t1w', fix_multi_source_name), 'source_file')]),
-            (about, ds_report_about, [('out_report', 'in_file')]),
         ])
         # fmt:on
-        anat_dic[session] = anat_preproc_wf
-        # Overwrite ``out_path_base`` of smriprep's DataSinks
-        for node in workflow.list_node_names():
-            if node.split(".")[-1].startswith("ds_"):
-                workflow.get_node(node).interface.out_path_base = "fmriprep"
 
-        if anat_only:
-            return workflow
+        anat_dic[session] = anat_preproc_wf
+
+    # Overwrite ``out_path_base`` of smriprep's DataSinks
+    for node in workflow.list_node_names():
+        if node.split(".")[-1].startswith("ds_"):
+            workflow.get_node(node).interface.out_path_base = "fmriprep"
+
+    if anat_only:
+        return workflow
 
     # Append the functional section to the existing anatomical exerpt
     # That way we do not need to stream down the number of bold datasets
