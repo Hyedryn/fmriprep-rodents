@@ -844,7 +844,7 @@ def init_anat_reports_wf(*, output_dir, name="anat_reports_wf"):
     )
 
     norm_msk.inputs.before = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"  # before
-    norm_msk.inputs.mask_file = "std_mask"
+    norm_msk.inputs.mask_file = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"  # mask
 
     # fmt:off
     workflow.connect([

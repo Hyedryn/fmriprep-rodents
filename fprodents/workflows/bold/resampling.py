@@ -639,7 +639,7 @@ def _select_template(template):
         default_res = 2
 
     out = get_template_specs(
-        template, template_spec=specs, default_resolution=default_res
+        "Fischer344", template_spec=specs, default_resolution=default_res
     )
 
     return out[0]

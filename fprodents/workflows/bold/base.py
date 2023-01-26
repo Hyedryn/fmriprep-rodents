@@ -667,7 +667,7 @@ Non-gridded (surface) resamplings were performed using `mri_vol2surf`
         )
         # Xform to 'MouseIn' is always computed.
         carpetplot_select_std = pe.Node(
-            KeySelect(fields=["std2anat_xfm"], key="MouseIn"),
+            KeySelect(fields=["std2anat_xfm"], key="TMBTA"),
             name="carpetplot_select_std",
             run_without_submitting=True,
         )
