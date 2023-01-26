@@ -46,7 +46,7 @@ def init_func_derivatives_wf(
     from niworkflows.interfaces.utility import KeySelect
     from smriprep.workflows.outputs import _bids_relative
 
-    nonstd_spaces = set(spaces)
+    nonstd_spaces = set(spaces.get_nonstandard())
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
