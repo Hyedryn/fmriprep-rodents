@@ -188,8 +188,8 @@ It is released under the [CC0]\
 
     summary = pe.Node(
         SubjectSummary(
-            std_spaces=spaces.get_spaces(nonstandard=False),
-            nstd_spaces=spaces.get_spaces(standard=False),
+            std_spaces=spaces,#spaces.get_spaces(nonstandard=False),
+            nstd_spaces=[]#spaces#spaces.get_spaces(standard=False),
         ),
         name="summary",
         run_without_submitting=True,
@@ -227,7 +227,7 @@ It is released under the [CC0]\
     if anat_derivatives:
         from smriprep.utils.bids import collect_derivatives
 
-        std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
+        std_spaces = spaces#spaces.get_spaces(nonstandard=False, dim=(3,))
         anat_derivatives = collect_derivatives(
             anat_derivatives.absolute(),
             subject_id,
