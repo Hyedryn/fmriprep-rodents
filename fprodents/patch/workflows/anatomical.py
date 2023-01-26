@@ -612,17 +612,17 @@ The following template{tpls} selected for spatial normalization:
 
         # Append template citations to description
         for template in templates:
-            template_meta = get_metadata(template.split(":")[0])
-            template_refs = ["@%s" % template.split(":")[0].lower()]
+            #template_meta = get_metadata(template.split(":")[0])
+            #template_refs = ["@%s" % template.split(":")[0].lower()]
 
-            if template_meta.get("RRID", None):
-                template_refs += ["RRID:%s" % template_meta["RRID"]]
+            #if template_meta.get("RRID", None):
+            #    template_refs += ["RRID:%s" % template_meta["RRID"]]
 
             workflow.__desc__ += """\
 *{template_name}* [{template_refs}; TemplateFlow ID: {template}]""".format(
-                template=template,
-                template_name=template_meta["Name"],
-                template_refs=", ".join(template_refs),
+                template="TEMLPLATEname",
+                template_name="tmpname",
+                template_refs=", ".join("dd"),
             )
             workflow.__desc__ += (", ", ".")[template == templates[-1][0]]
 
@@ -652,9 +652,7 @@ The following template{tpls} selected for spatial normalization:
 
     split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name="split_desc")
 
-    tf_select = pe.Node(
-        TemplateFlowSelect(), name="tf_select", run_without_submitting=True
-    )
+
 
     # With the improvements from nipreps/niworkflows#342 this truncation is now necessary
     trunc_mov = pe.Node(
@@ -680,6 +678,8 @@ The following template{tpls} selected for spatial normalization:
 
     std_mask = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="std_mask")
 
+    tpl_moving.inputs.reference_image = "reference_image"  # before
+    std_mask.inputs.reference_image = "reference_image"
     # fmt:off
     workflow.connect([
         (inputnode, split_desc, [('template', 'template')]),
@@ -690,12 +690,8 @@ The following template{tpls} selected for spatial normalization:
             ('lesion_mask', 'lesion_mask')]),
         (inputnode, tpl_moving, [('moving_image', 'input_image')]),
         (inputnode, std_mask, [('moving_mask', 'input_image')]),
-        (split_desc, tf_select, [('name', 'template'),
-                                 ('spec', 'template_spec')]),
         (split_desc, registration, [('name', 'template'),
                                     (('spec', _no_atlas), 'template_spec')]),
-        (tf_select, tpl_moving, [('t1w_file', 'reference_image')]),
-        (tf_select, std_mask, [('t1w_file', 'reference_image')]),
         (trunc_mov, registration, [
             ('output_image', 'moving_image')]),
         (registration, tpl_moving, [('composite_transform', 'transforms')]),
@@ -825,9 +821,7 @@ def init_anat_reports_wf(*, output_dir, name="anat_reports_wf"):
     # fmt:on
 
     # Generate reportlets showing spatial normalization
-    tf_select = pe.Node(
-        TemplateFlowSelect(), name="tf_select", run_without_submitting=True
-    )
+
     norm_msk = pe.Node(
         niu.Function(
             function=_rpt_masks,
@@ -849,14 +843,14 @@ def init_anat_reports_wf(*, output_dir, name="anat_reports_wf"):
         run_without_submitting=True,
     )
 
+    norm_msk.inputs.before = "Template"  # before
+    norm_msk.inputs.mask_file = "std_mask"
+
     # fmt:off
     workflow.connect([
-        (inputnode, tf_select, [('template', 'template')]),
         (inputnode, norm_rpt, [('template', 'before_label')]),
         (inputnode, norm_msk, [('std_t1w', 'after'),
                                ('std_mask', 'after_mask')]),
-        (tf_select, norm_msk, [('t1w_file', 'before'),
-                               ('brain_mask', 'mask_file')]),
         (norm_msk, norm_rpt, [('before', 'before'),
                               ('after', 'after')]),
         (inputnode, ds_std_anat_report, [
