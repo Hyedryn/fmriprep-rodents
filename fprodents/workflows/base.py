@@ -275,7 +275,6 @@ were met (for participant <{subject_id}>, spaces <{', '.join(std_spaces)}>."""
             (bidssrc, bids_info, [(('t1w', fix_multi_source_name), 'in_file')]),
             (inputnode, summary, [('subjects_dir', 'subjects_dir')]),
             (bidssrc, summary, [('t1w', 't1w'),
-                                ('t2w', 't2w'),
                                 ('bold', 'bold')]),
             (bids_info, summary, [('subject', 'subject_id')]),
             (bidssrc, anat_preproc_wf, [('roi', 'inputnode.roi')]),
