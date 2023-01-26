@@ -651,8 +651,8 @@ def init_spaces(checkpoint=True):
         spaces.checkpoint()
 
     # Add the default standard space if not already present (required by several sub-workflows)
-    if "TMBTA" not in spaces.get_spaces(nonstandard=False, dim=(3,)):
-        spaces.add("TMBTA")
+    if "MouseIn" not in spaces.get_spaces(nonstandard=False, dim=(3,)):
+        spaces.add("MouseIn")
         
     print("DBEUG",spaces.get_spaces(nonstandard=False, dim=(3,)))
 
