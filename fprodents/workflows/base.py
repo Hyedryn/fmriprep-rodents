@@ -258,6 +258,8 @@ were met (for participant <{subject_id}>, spaces <{', '.join(std_spaces)}>."""
 
     print(subject_data["t1w"])
     anat_dic = {}
+    
+    print("DEBUG",Reference.from_string("MouseIn")[0])
     for anat_file in subject_data["t1w"]:
         entities = extract_entities(anat_file)
         if "session" in entities:
