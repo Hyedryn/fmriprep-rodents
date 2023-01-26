@@ -286,12 +286,8 @@ class RobustMNINormalization(_Norm):
             template_spec["suffix"] = self.inputs.reference
             template_spec["desc"] = None
 
-            ref_template, template_spec = get_template_specs(
-                self.inputs.template,
-                template_spec=template_spec,
-                default_resolution=default_resolution,
-            )
-
+            #ref_template, template_spec = get_template_specs(self.inputs.template,template_spec=template_spec,default_resolution=default_resolution,)
+            ref_template = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"
             template_spec["atlas"] = None
             template_spec["hemi"] = None
 
@@ -306,9 +302,7 @@ cannot be found."""
                 )
 
             # Get the template specified by the user.
-            ref_mask = tf.api.get(
-                self.inputs.template, desc="brain", suffix="mask", **template_spec
-            )
+            ref_mask = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"#tf.api.get(self.inputs.template, desc="brain", suffix="mask", **template_spec)
 
             # Default is explicit masking disabled
             args["fixed_image"] = ref_template
