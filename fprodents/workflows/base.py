@@ -274,9 +274,7 @@ were met (for participant <{subject_id}>, spaces <{', '.join(std_spaces)}>."""
             output_dir=output_dir,
             skull_strip_fixed_seed=config.workflow.skull_strip_fixed_seed,
             skull_strip_mode=config.workflow.skull_strip_t1w,
-            skull_strip_template=Reference.from_string(
-                config.workflow.skull_strip_template
-            )[0],
+            skull_strip_template="TMBTA",
             spaces=spaces,
             t1w=anat_file,
             ses=extract_entities(anat_file).get("session"),

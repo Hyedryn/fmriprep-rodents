@@ -641,11 +641,9 @@ def init_spaces(checkpoint=True):
     """Initialize the :attr:`~workflow.spaces` setting."""
     from niworkflows.utils.spaces import Reference, SpatialReferences
 
-    spaces = execution.output_spaces or SpatialReferences()
+    spaces = SpatialReferences() #execution.output_spaces or
     if not isinstance(spaces, SpatialReferences):
-        spaces = SpatialReferences(
-            [ref for s in spaces.split(" ") for ref in Reference.from_string(s)]
-        )
+        spaces = SpatialReferences([ref for s in spaces.split(" ") for ref in Reference.from_string(s)] )
 
     if checkpoint and not spaces.is_cached():
         spaces.checkpoint()
