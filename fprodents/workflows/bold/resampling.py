@@ -177,12 +177,6 @@ preprocessed BOLD runs*: {tpl}.
         run_without_submitting=True,
     )
 
-    select_tpl = pe.Node(
-        niu.Function(function=_select_template),
-        name="select_tpl",
-        run_without_submitting=True,
-    )
-
     gen_ref = pe.Node(
         GenerateSamplingReference(), name="gen_ref", mem_gb=0.3
     )  # 256x256x256 * 64 / 8 ~ 150MB)
@@ -226,10 +220,10 @@ preprocessed BOLD runs*: {tpl}.
 
     merge = pe.Node(Merge(compress=use_compression), name="merge", mem_gb=mem_gb * 3)
 
+    gen_ref.inputs.fixed_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"
     # fmt:off
     workflow.connect([
         (iterablesource, split_target, [('std_target', 'in_target')]),
-        (iterablesource, select_tpl, [('std_target', 'template')]),
         (inputnode, select_std, [('anat2std_xfm', 'anat2std_xfm'),
                                  ('templates', 'keys')]),
         (inputnode, mask_std_tfm, [('bold_mask', 'input_image')]),
@@ -244,7 +238,6 @@ preprocessed BOLD runs*: {tpl}.
         (select_std, merge_xforms, [('anat2std_xfm', 'in1')]),
         (select_std, mask_merge_tfms, [('anat2std_xfm', 'in1')]),
         (split_target, gen_ref, [(('spec', _is_native), 'keep_native')]),
-        (select_tpl, gen_ref, [('out', 'fixed_image')]),
         (merge_xforms, bold_to_std_transform, [('out', 'transforms')]),
         (gen_ref, bold_to_std_transform, [('out_file', 'reference_image')]),
         (gen_ref, mask_std_tfm, [('out_file', 'reference_image')]),
