@@ -399,7 +399,7 @@ class FMRISummary(SimpleInterface):
         data.columns = colnames
         import nibabel as nb
         fig = fMRIPlot(
-            nb.load(self.inputs.in_func),
+            nb.load(self.inputs.in_func).get_fdata(),
             segments=(self.inputs.in_segm if isdefined(self.inputs.in_segm) else None),
             tr=self.inputs.tr,
             confounds=data,
