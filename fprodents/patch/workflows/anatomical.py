@@ -337,7 +337,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     anat_norm_wf = init_anat_norm_wf(
         debug=debug,
         omp_nthreads=omp_nthreads,
-        templates=spaces.get_spaces(nonstandard=False, dim=(3,)),
+        templates=spaces,
     )
 
     # fmt:off
@@ -1005,7 +1005,7 @@ def init_anat_derivatives_wf(
     # fmt:on
 
     # Transforms
-    if spaces.get_spaces(nonstandard=False, dim=(3,)):
+    if spaces:
         ds_std2t1w_xfm = pe.MapNode(
             DerivativesDataSink(
                 base_directory=output_dir, to="T1w", mode="image", suffix="xfm"
@@ -1061,20 +1061,13 @@ def init_anat_derivatives_wf(
         # fmt:on
 
     # Write derivatives in standard spaces specified by --output-spaces
-    if getattr(spaces, "_cached") is not None and spaces.cached.references:
+    if True:
         from niworkflows.interfaces.space import SpaceDataSource
         from niworkflows.interfaces.nibabel import GenerateSamplingReference
         from niworkflows.interfaces.fixes import (
             FixHeaderApplyTransforms as ApplyTransforms,
         )
 
-        spacesource = pe.Node(
-            SpaceDataSource(), name="spacesource", run_without_submitting=True
-        )
-        spacesource.iterables = (
-            "in_tuple",
-            [(s.fullname, s.spec) for s in spaces.cached.get_standard(dim=(3,))],
-        )
 
         gen_tplid = pe.Node(
             niu.Function(function=_fmt_cohort),
@@ -1159,6 +1152,26 @@ def init_anat_derivatives_wf(
         ds_std_tpms.inputs.label = tpm_labels
 
         ds_std_mask.inputs.RawSources = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"
+
+        gen_tplid.inputs.template = spaces[0]
+        gen_tplid.inputs.cohort = None
+        gen_ref.inputs.keep_native = False
+
+        ds_std_t1w.inputs.space = spaces[0]
+        ds_std_mask.inputs.space = spaces[0]
+        ds_std_dseg.inputs.space = spaces[0]
+        ds_std_tpms.inputs.space = spaces[0]
+
+        ds_std_t1w.inputs.cohort = None
+        ds_std_mask.inputs.cohort = None
+        ds_std_dseg.inputs.cohort = None
+        ds_std_tpms.inputs.cohort = None
+
+        ds_std_t1w.inputs.resolution = None
+        ds_std_mask.inputs.resolution = None
+        ds_std_dseg.inputs.resolution = None
+        ds_std_tpms.inputs.resolution = None
+
         # fmt:off
         workflow.connect([
             (inputnode, anat2std_t1w, [('t1w_preproc', 'input_image')]),
@@ -1169,10 +1182,7 @@ def init_anat_derivatives_wf(
             (inputnode, select_xfm, [
                 ('anat2std_xfm', 'anat2std_xfm'),
                 ('template', 'keys')]),
-            (spacesource, gen_tplid, [('space', 'template'),
-                                      ('cohort', 'cohort')]),
             (gen_tplid, select_xfm, [('out', 'key')]),
-            (spacesource, gen_ref, [(('resolution', _is_native), 'keep_native')]),
             (anat2std_t1w, ds_std_t1w, [('output_image', 'in_file')]),
             (anat2std_mask, ds_std_mask, [('output_image', 'in_file')]),
             (anat2std_dseg, ds_std_dseg, [('output_image', 'in_file')]),
@@ -1192,13 +1202,6 @@ def init_anat_derivatives_wf(
             # Connect the source_file input of these datasinks
             + [
                 (inputnode, n, [('source_files', 'source_file')])
-                for n in (ds_std_t1w, ds_std_mask, ds_std_dseg, ds_std_tpms)
-            ]
-            # Connect the space input of these datasinks
-            + [
-                (spacesource, n, [
-                    ('space', 'space'), ('cohort', 'cohort'), ('resolution', 'resolution')
-                ])
                 for n in (ds_std_t1w, ds_std_mask, ds_std_dseg, ds_std_tpms)
             ]
         )
