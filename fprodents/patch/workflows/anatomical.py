@@ -678,8 +678,8 @@ The following template{tpls} selected for spatial normalization:
 
     std_mask = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="std_mask")
 
-    tpl_moving.inputs.reference_image = "reference_image"  # before
-    std_mask.inputs.reference_image = "reference_image"
+    tpl_moving.inputs.reference_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"  # before
+    std_mask.inputs.reference_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"
     # fmt:off
     workflow.connect([
         (inputnode, split_desc, [('template', 'template')]),
@@ -843,7 +843,7 @@ def init_anat_reports_wf(*, output_dir, name="anat_reports_wf"):
         run_without_submitting=True,
     )
 
-    norm_msk.inputs.before = "Template"  # before
+    norm_msk.inputs.before = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"  # before
     norm_msk.inputs.mask_file = "std_mask"
 
     # fmt:off
