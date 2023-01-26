@@ -400,10 +400,9 @@ class FMRISummary(SimpleInterface):
 
         fig = fMRIPlot(
             self.inputs.in_func,
-            mask_file=self.inputs.in_mask if isdefined(self.inputs.in_mask) else None,
-            seg_file=(self.inputs.in_segm if isdefined(self.inputs.in_segm) else None),
+            segments=(self.inputs.in_segm if isdefined(self.inputs.in_segm) else None),
             tr=self.inputs.tr,
-            data=data,
+            confounds=data,
             units=units,
         ).plot()
         fig.savefig(self._results["out_file"], bbox_inches="tight")
