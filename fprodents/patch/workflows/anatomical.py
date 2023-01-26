@@ -410,7 +410,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # 4. Brain tissue segmentation - FAST produces: 0 (bg), 1 (wm), 2 (csf), 3 (gm)
     gm_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_gm.nii.gz")#get("MouseIn", label="GM", suffix="probseg")
-    wm_tpm =  Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_wm.nii.gz")#get("MouseIn", label="WM", suffix="probseg")
+    wm_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_wm.nii.gz")#get("MouseIn", label="WM", suffix="probseg")
     csf_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_csf.nii.gz")#get("MouseIn", label="CSF", suffix="probseg")
 
     xfm_gm = pe.Node(
