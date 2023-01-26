@@ -1087,12 +1087,10 @@ def init_anat_derivatives_wf(
             name="select_xfm",
             run_without_submitting=True,
         )
-        select_tpl = pe.Node(
-            TemplateFlowSelect(), name="select_tpl", run_without_submitting=True
-        )
+
 
         gen_ref = pe.Node(GenerateSamplingReference(), name="gen_ref", mem_gb=0.01)
-
+        gen_ref.inputs.fixed_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"
         # Resample T1w-space inputs
         anat2std_t1w = pe.Node(
             ApplyTransforms(
@@ -1159,6 +1157,8 @@ def init_anat_derivatives_wf(
         #           (intensity mean, per tissue). This order HAS to be matched also by the ``tpms``
         #           output in the data/io_spec.json file.
         ds_std_tpms.inputs.label = tpm_labels
+
+        ds_std_mask.inputs.RawSources = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"
         # fmt:off
         workflow.connect([
             (inputnode, anat2std_t1w, [('t1w_preproc', 'input_image')]),
@@ -1172,16 +1172,11 @@ def init_anat_derivatives_wf(
             (spacesource, gen_tplid, [('space', 'template'),
                                       ('cohort', 'cohort')]),
             (gen_tplid, select_xfm, [('out', 'key')]),
-            (spacesource, select_tpl, [('space', 'template'),
-                                       ('cohort', 'cohort'),
-                                       (('resolution', _no_native), 'resolution')]),
             (spacesource, gen_ref, [(('resolution', _is_native), 'keep_native')]),
-            (select_tpl, gen_ref, [('t1w_file', 'fixed_image')]),
             (anat2std_t1w, ds_std_t1w, [('output_image', 'in_file')]),
             (anat2std_mask, ds_std_mask, [('output_image', 'in_file')]),
             (anat2std_dseg, ds_std_dseg, [('output_image', 'in_file')]),
             (anat2std_tpms, ds_std_tpms, [('output_image', 'in_file')]),
-            (select_tpl, ds_std_mask, [(('brain_mask', _drop_path), 'RawSources')]),
         ])
 
         workflow.connect(
