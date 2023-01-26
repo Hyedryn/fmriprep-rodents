@@ -17,6 +17,8 @@ from ..interfaces import TemplateFlowSelect
 from ..utils import fix_multi_source_name
 from .brainextraction import init_rodent_brain_extraction_wf
 
+from pathlib import Path
+
 LOGGER = logging.getLogger("nipype.workflow")
 
 
@@ -407,9 +409,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # fmt:on
 
     # 4. Brain tissue segmentation - FAST produces: 0 (bg), 1 (wm), 2 (csf), 3 (gm)
-    gm_tpm = get("MouseIn", label="GM", suffix="probseg")
-    wm_tpm = get("MouseIn", label="WM", suffix="probseg")
-    csf_tpm = get("MouseIn", label="CSF", suffix="probseg")
+    gm_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_gm.nii.gz")#get("MouseIn", label="GM", suffix="probseg")
+    wm_tpm =  Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_wm.nii.gz")#get("MouseIn", label="WM", suffix="probseg")
+    csf_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_csf.nii.gz")#get("MouseIn", label="CSF", suffix="probseg")
 
     xfm_gm = pe.Node(
         ApplyTransforms(input_image=_pop(gm_tpm), interpolation="MultiLabel"),
