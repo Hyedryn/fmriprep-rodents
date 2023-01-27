@@ -407,11 +407,16 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         ]),
     ])
     # fmt:on
-
+    MouseIn = True
     # 4. Brain tissue segmentation - FAST produces: 0 (bg), 1 (wm), 2 (csf), 3 (gm)
-    gm_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_gm.nii.gz")#get("MouseIn", label="GM", suffix="probseg")
-    wm_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_wm.nii.gz")#get("MouseIn", label="WM", suffix="probseg")
-    csf_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_csf.nii.gz")#get("MouseIn", label="CSF", suffix="probseg")
+    if MouseIn:
+        gm_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_desc-GM_probseg.nii.gz")#get("MouseIn", label="GM", suffix="probseg")
+        wm_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_desc-WM_probseg.nii.gz")#get("MouseIn", label="WM", suffix="probseg")
+        csf_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_desc-CSF_probseg.nii.gz")#get("MouseIn", label="CSF", suffix="probseg")
+    else:
+        gm_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_gm.nii.gz")#get("MouseIn", label="GM", suffix="probseg")
+        wm_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_wm.nii.gz")#get("MouseIn", label="WM", suffix="probseg")
+        csf_tpm = Path("/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_csf.nii.gz")#get("MouseIn", label="CSF", suffix="probseg")
 
     xfm_gm = pe.Node(
         ApplyTransforms(input_image=_pop(gm_tpm), interpolation="MultiLabel"),
@@ -678,8 +683,13 @@ The following template{tpls} selected for spatial normalization:
 
     std_mask = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="std_mask")
 
-    tpl_moving.inputs.reference_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"  # before
-    std_mask.inputs.reference_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"
+    MouseIn=True
+    if MouseIn:
+        tpl_moving.inputs.reference_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_T1map.nii.gz"  # before
+        std_mask.inputs.reference_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_desc-brain_mask.nii.gz"
+    else:
+        tpl_moving.inputs.reference_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"  # before
+        std_mask.inputs.reference_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"
     # fmt:off
     workflow.connect([
         (inputnode, split_desc, [('template', 'template')]),
@@ -843,8 +853,14 @@ def init_anat_reports_wf(*, output_dir, name="anat_reports_wf"):
         run_without_submitting=True,
     )
 
-    norm_msk.inputs.before = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"  # before
-    norm_msk.inputs.mask_file = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"  # mask
+
+    MouseIn=True
+    if MouseIn:
+        norm_msk.inputs.before = "/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_T1map.nii.gz"  # before
+        norm_msk.inputs.mask_file = "/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_desc-brain_mask.nii.gz"
+    else:
+        norm_msk.inputs.before = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"  # before
+        norm_msk.inputs.mask_file = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"  # mask
 
     # fmt:off
     workflow.connect([
@@ -1090,7 +1106,24 @@ def init_anat_derivatives_wf(
 
 
         gen_ref = pe.Node(GenerateSamplingReference(), name="gen_ref", mem_gb=0.01)
-        gen_ref.inputs.fixed_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"
+        
+                ds_std_mask = pe.Node(
+            DerivativesDataSink(
+                base_directory=output_dir, desc="brain", suffix="mask", compress=True
+            ),
+            name="ds_std_mask",
+            run_without_submitting=True,
+        )
+        ds_std_mask.inputs.Type = "Brain"
+
+
+        MouseIn=True
+        if MouseIn:
+            gen_ref.inputs.fixed_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_T1map.nii.gz"  # before
+            ds_std_mask.inputs.RawSources = "/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_desc-brain_mask.nii.gz"
+        else:
+            gen_ref.inputs.fixed_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"
+            ds_std_mask.inputs.RawSources = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"
         # Resample T1w-space inputs
         anat2std_t1w = pe.Node(
             ApplyTransforms(
@@ -1128,14 +1161,6 @@ def init_anat_derivatives_wf(
         )
         ds_std_t1w.inputs.SkullStripped = True
 
-        ds_std_mask = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, desc="brain", suffix="mask", compress=True
-            ),
-            name="ds_std_mask",
-            run_without_submitting=True,
-        )
-        ds_std_mask.inputs.Type = "Brain"
 
         ds_std_dseg = pe.Node(
             DerivativesDataSink(
@@ -1158,7 +1183,7 @@ def init_anat_derivatives_wf(
         #           output in the data/io_spec.json file.
         ds_std_tpms.inputs.label = tpm_labels
 
-        ds_std_mask.inputs.RawSources = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"
+        
         # fmt:off
         workflow.connect([
             (inputnode, anat2std_t1w, [('t1w_preproc', 'input_image')]),

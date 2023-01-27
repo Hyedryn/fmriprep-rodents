@@ -287,7 +287,14 @@ class RobustMNINormalization(_Norm):
             template_spec["desc"] = None
 
             #ref_template, template_spec = get_template_specs(self.inputs.template,template_spec=template_spec,default_resolution=default_resolution,)
-            ref_template = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"
+            MouseIn=True
+            if MouseIn:
+                ref_template = "/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_T1map.nii.gz"  # before
+                ref_mask = "/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_desc-brain_mask.nii.gz"
+            else:
+                ref_template = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"
+                # Get the template specified by the user.
+                ref_mask = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"#tf.api.get(self.inputs.template, desc="brain", suffix="mask", **template_spec)
             template_spec["atlas"] = None
             template_spec["hemi"] = None
 
@@ -301,8 +308,7 @@ cannot be found."""
                     % ref_template
                 )
 
-            # Get the template specified by the user.
-            ref_mask = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_desc-brain_mask.nii.gz"#tf.api.get(self.inputs.template, desc="brain", suffix="mask", **template_spec)
+
 
             # Default is explicit masking disabled
             args["fixed_image"] = ref_template

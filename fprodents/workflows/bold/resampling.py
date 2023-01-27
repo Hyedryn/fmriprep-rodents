@@ -220,7 +220,11 @@ preprocessed BOLD runs*: {tpl}.
 
     merge = pe.Node(Merge(compress=use_compression), name="merge", mem_gb=mem_gb * 3)
 
-    gen_ref.inputs.fixed_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"
+    MouseIn=True
+    if MouseIn:
+        gen_ref.inputs.fixed_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_T1map.nii.gz" 
+    else:
+        gen_ref.inputs.fixed_image = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_T1wBrain.nii.gz"
     # fmt:off
     workflow.connect([
         (iterablesource, split_target, [('std_target', 'in_target')]),

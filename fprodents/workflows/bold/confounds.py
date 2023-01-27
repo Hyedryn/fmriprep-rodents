@@ -621,7 +621,11 @@ def init_carpetplot_wf(mem_gb, metadata, name="bold_carpet_wf"):
     # List transforms
     mrg_xfms = pe.Node(niu.Merge(2), name="mrg_xfms")
 
-    dseg_tpm = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_dseg.nii.gz"#get_template("MouseIn",suffix="dseg",atlas=None,extension=[".nii", ".nii.gz"],)
+    MouseIn=True
+    if MouseIn:
+        dseg_tpm = "/globalscratch/users/q/d/qdessain/SYRINA/Template/MouseIn/tpl-MouseIn_res-1_dseg.nii.gz"
+    else:
+        dseg_tpm = "/globalscratch/users/q/d/qdessain/SYRINA/Template/TMBTA/tpl-TMBTA_dseg.nii.gz"#get_template("MouseIn",suffix="dseg",atlas=None,extension=[".nii", ".nii.gz"],)
 
     # Warp segmentation into EPI space
     resample_parc = pe.Node(
