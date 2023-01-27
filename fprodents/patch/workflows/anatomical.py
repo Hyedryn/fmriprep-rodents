@@ -1107,7 +1107,7 @@ def init_anat_derivatives_wf(
 
         gen_ref = pe.Node(GenerateSamplingReference(), name="gen_ref", mem_gb=0.01)
         
-                ds_std_mask = pe.Node(
+        ds_std_mask = pe.Node(
             DerivativesDataSink(
                 base_directory=output_dir, desc="brain", suffix="mask", compress=True
             ),
