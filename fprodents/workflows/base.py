@@ -343,6 +343,7 @@ tasks and sessions), the following preprocessing was performed.
               (('outputnode.n_dummy', _pop), 'inputnode.n_dummy_scans')]),
         ])
         # fmt:on
+
     return workflow
 
 

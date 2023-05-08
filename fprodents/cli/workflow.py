@@ -80,6 +80,11 @@ def build_workflow(config_file, retval):
 
     retval["workflow"] = init_fmriprep_wf()
 
+    retval["workflow"].write_graph(graph2use='colored', format='png', simple_form=True)
+    retval["workflow"].write_graph(graph2use='flat', format='png', simple_form=True)
+
+    print("retval['workflow'] = ", retval["workflow"])
+
     # Check for FS license after building the workflow
     if not check_valid_fs_license():
         build_log.critical(
